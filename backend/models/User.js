@@ -3,26 +3,19 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: [true, 'Name is required']
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'Email is required'],
     unique: true
-  },
-  role: {
-    type: String,
-    enum: ['admin', 'manager', 'employee'],
-    required: true
   },
   department: {
     type: String,
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+    required: [true, 'Department is required']
   }
+}, {
+  timestamps: true // Automatically adds createdAt and updatedAt
 });
 
 module.exports = mongoose.model('User', userSchema);

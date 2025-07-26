@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { registerUser } from '../utils/api'; // Import the API function
 
 const CodeIgniteRegister = () => {
   const [formData, setFormData] = useState({
@@ -9,23 +10,34 @@ const CodeIgniteRegister = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(''); // To store any error message
 
   const handleChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      department: 'Computer Technology',
-    });
+
+    // Call the registerUser function from api.js
+    const result = await registerUser(formData);
+
+    if (result.success) {
+      setSubmitted(true);
+      setErrorMessage('');
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        department: 'Computer Technology',
+      });
+    } else {
+      setSubmitted(false);
+      setErrorMessage(result.message || 'An error occurred during registration');
+    }
   };
 
   return (
@@ -91,6 +103,13 @@ const CodeIgniteRegister = () => {
             <p><strong>Department:</strong> {formData.department}</p>
           </div>
         )}
+
+        {errorMessage && (
+          <div style={styles.errorOutput}>
+            <h2>Error</h2>
+            <p>{errorMessage}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -103,7 +122,7 @@ const styles = {
     color: '#fff',
     textAlign: 'center',
     padding: '20px',
-    minHeight: '100vh'
+    minHeight: '100vh',
   },
   container: {
     background: '#ffffff',
@@ -112,20 +131,20 @@ const styles = {
     margin: 'auto',
     borderRadius: '10px',
     boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
-    color: '#333'
+    color: '#333',
   },
   heading: {
-    color: '#5fa8f7'
+    color: '#5fa8f7',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    textAlign: 'left'
+    textAlign: 'left',
   },
   label: {
     fontWeight: 'bold',
     marginTop: '10px',
-    color: '#42658b'
+    color: '#42658b',
   },
   input: {
     padding: '10px',
@@ -133,7 +152,7 @@ const styles = {
     border: '2px solid #35689e',
     borderRadius: '5px',
     width: '100%',
-    fontSize: '16px'
+    fontSize: '16px',
   },
   button: {
     marginTop: '15px',
@@ -143,7 +162,7 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     borderRadius: '5px',
-    fontSize: '16px'
+    fontSize: '16px',
   },
   output: {
     marginTop: '20px',
@@ -151,8 +170,16 @@ const styles = {
     padding: '15px',
     borderRadius: '5px',
     boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-    color: '#333'
-  }
+    color: '#333',
+  },
+  errorOutput: {
+    marginTop: '20px',
+    background: '#f8d7da',
+    padding: '15px',
+    borderRadius: '5px',
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    color: '#721c24',
+  },
 };
 
 export default CodeIgniteRegister;

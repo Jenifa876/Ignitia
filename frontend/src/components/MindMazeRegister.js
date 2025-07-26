@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { registerUser } from '../utils/api'; // import the shared API function
 
 const MindMazeRegister = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const MindMazeRegister = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -17,15 +19,25 @@ const MindMazeRegister = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      department: 'Computer Technology',
-    });
+
+    // Add the event name before sending
+    const result = await registerUser({ ...formData, event: 'Mind Maze' });
+
+    if (result.success) {
+      setSubmitted(true);
+      setErrorMessage('');
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        department: 'Computer Technology',
+      });
+    } else {
+      setSubmitted(false);
+      setErrorMessage(result.message || 'Registration failed. Please try again.');
+    }
   };
 
   const styles = {
@@ -84,6 +96,13 @@ const MindMazeRegister = () => {
       borderRadius: '5px',
       boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
       color: '#333',
+    },
+    errorOutput: {
+      marginTop: '20px',
+      background: '#f8d7da',
+      padding: '15px',
+      borderRadius: '5px',
+      color: '#721c24',
     },
   };
 
@@ -152,6 +171,13 @@ const MindMazeRegister = () => {
             <p><strong>Email:</strong> {formData.email}</p>
             <p><strong>Phone:</strong> {formData.phone}</p>
             <p><strong>Department:</strong> {formData.department}</p>
+          </div>
+        )}
+
+        {errorMessage && (
+          <div style={styles.errorOutput}>
+            <h3>Error</h3>
+            <p>{errorMessage}</p>
           </div>
         )}
       </div>
