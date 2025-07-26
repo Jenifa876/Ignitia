@@ -1,21 +1,17 @@
 const mongoose = require('mongoose');
+const shortid = require('shortid');
 
 const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Name is required']
+  userId: { 
+    type: String, 
+    required: true, 
+    unique: true, 
+    default: shortid.generate // Automatically generate userId using shortid
   },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true
-  },
-  department: {
-    type: String,
-    required: [true, 'Department is required']
-  }
-}, {
-  timestamps: true // Automatically adds createdAt and updatedAt
-});
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String, required: true },
+  department: { type: String, required: true },
+}, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

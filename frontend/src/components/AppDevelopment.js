@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
 
-const TreasureHuntRegister = () => {
+const AppDevelopment = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     department: 'Computer Technology',
-    eventName: 'Treasure Hunt', // ✅ Update eventName here
-    screenshot: null, // New field for payment screenshot
+    eventName: 'App Development',
+    screenshot: null, // ✅ New field for payment screenshot
   });
 
   const [submittedData, setSubmittedData] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
   };
 
@@ -57,7 +58,7 @@ const TreasureHuntRegister = () => {
           email: '',
           phone: '',
           department: 'Computer Technology',
-          eventName: 'Treasure Hunt',
+          eventName: 'App Development',
           screenshot: null,
         });
       } else {
@@ -73,7 +74,7 @@ const TreasureHuntRegister = () => {
   return (
     <div style={styles.body}>
       <div style={styles.container}>
-        <h1 style={styles.heading}>Register for Treasure Hunt</h1>
+        <h1 style={styles.heading}>Register for App Development Workshop</h1>
         <form onSubmit={handleSubmit} style={styles.form}>
           <label style={styles.label}>Full Name:</label>
           <input
@@ -226,4 +227,4 @@ const styles = {
   },
 };
 
-export default TreasureHuntRegister;
+export default AppDevelopment;

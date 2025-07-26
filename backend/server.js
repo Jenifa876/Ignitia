@@ -3,6 +3,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const multer = require('multer');
 
 // Load environment variables from .env
 dotenv.config();
@@ -11,8 +12,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors()); // Enable CORS for frontend-backend communication
-app.use(express.json()); // Parse incoming JSON
+app.use(cors());
+app.use(express.json());
 
 // MongoDB Connection using Atlas URI from .env
 mongoose.connect(process.env.MONGODB_URI, {
@@ -22,16 +23,54 @@ mongoose.connect(process.env.MONGODB_URI, {
 .then(() => console.log('✅ MongoDB connected'))
 .catch((err) => console.error('❌ MongoDB connection error:', err));
 
-// Serve static files from frontend/public
+// Serve static files
 app.use(express.static(path.join(__dirname, '../frontend/public')));
-
-// Serve static files from frontend/src
 app.use(express.static(path.join(__dirname, '../frontend/src')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve uploaded files
 
-// Mongoose model (just needed for /api/register, optional)
-const User = require('./models/User');
+// Routes imports
+const userRoutes = require('./routes/users');
+const registrationRoutes = require('./routes/registrations');
+const eventRoutes = require('./routes/events');
 
-// Route to serve sample.html
+// API routes
+app.use('/api/users', userRoutes);
+app.use('/api/registrations', registrationRoutes);
+app.use('/api/events', eventRoutes);
+
+// Payment Upload Route (new)
+const Payment = require('./models/Payment');
+
+const storage = multer.diskStorage({
+    destination: './uploads/',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
+
+app.post('/api/upload-payment', upload.single('screenshot'), async (req, res) => {
+    try {
+        const { name, email, event } = req.body;
+        const filePath = req.file.path;
+
+        const payment = new Payment({
+            name,
+            email,
+            event,
+            screenshotPath: filePath,
+            verified: false,
+        });
+
+        await payment.save();
+        res.json({ message: 'Payment uploaded successfully!' });
+    } catch (error) {
+        console.error('Upload failed:', error);
+        res.status(500).json({ message: 'Upload failed' });
+    }
+});
+
+// Route to serve sample.html (optional)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/src/sample.html'));
 });
@@ -40,21 +79,6 @@ app.get('/', (req, res) => {
 app.get('/api/hello', (req, res) => {
     res.json({ message: 'Hello from the backend!' });
 });
-
-// Basic user registration test route
-app.post('/api/register', async (req, res) => {
-    try {
-        const newUser = new User(req.body);
-        await newUser.save();
-        res.status(201).json({ message: 'User registered successfully' });
-    } catch (err) {
-        res.status(500).json({ message: 'Registration failed', error: err });
-    }
-});
-
-// Load API routes from /routes/User.js
-const userRoutes = require('./routes/users');
-app.use('/api/users', userRoutes);
 
 // Start the server
 app.listen(PORT, () => {

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { registerUser } from '../utils/api'; // Import the API function
 
 const CodeIgniteRegister = () => {
   const [formData, setFormData] = useState({
@@ -7,36 +6,68 @@ const CodeIgniteRegister = () => {
     email: '',
     phone: '',
     department: 'Computer Technology',
+    eventName: 'CodeIgnite',
+    screenshot: null, // ✅ New field for payment screenshot
   });
 
-  const [submitted, setSubmitted] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(''); // To store any error message
+  const [submittedData, setSubmittedData] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      screenshot: e.target.files[0],
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Call the registerUser function from api.js
-    const result = await registerUser(formData);
+    if (!formData.screenshot) {
+      setErrorMessage('Please upload your payment screenshot.');
+      return;
+    }
 
-    if (result.success) {
-      setSubmitted(true);
-      setErrorMessage('');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        department: 'Computer Technology',
+    const data = new FormData();
+    data.append('name', formData.name);
+    data.append('email', formData.email);
+    data.append('event', formData.eventName);
+    data.append('screenshot', formData.screenshot);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/upload-payment', {
+        method: 'POST',
+        body: data,
       });
-    } else {
-      setSubmitted(false);
-      setErrorMessage(result.message || 'An error occurred during registration');
+
+      const result = await res.json();
+
+      if (res.ok) {
+        setSubmittedData(formData);
+        setErrorMessage('');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          department: 'Computer Technology',
+          eventName: 'CodeIgnite',
+          screenshot: null,
+        });
+      } else {
+        setSubmittedData(null);
+        setErrorMessage(result.message || 'Upload failed.');
+      }
+    } catch (err) {
+      setErrorMessage('Something went wrong while uploading.');
+      console.error(err);
     }
   };
 
@@ -91,16 +122,30 @@ const CodeIgniteRegister = () => {
             <option>Instrumentation</option>
           </select>
 
+          <label style={styles.label}>Scan & Pay:</label>
+          <img src="/images/qr-code.png" alt="QR Code" style={{ width: '200px', margin: '10px 0' }} />
+
+          <label style={styles.label}>Upload Payment Screenshot:</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            required
+            style={{ marginTop: '10px' }}
+          />
+
           <button type="submit" style={styles.button}>Register</button>
         </form>
 
-        {submitted && (
+        {submittedData && (
           <div style={styles.output}>
             <h2>Registration Successful!</h2>
-            <p><strong>Name:</strong> {formData.name}</p>
-            <p><strong>Email:</strong> {formData.email}</p>
-            <p><strong>Phone:</strong> {formData.phone}</p>
-            <p><strong>Department:</strong> {formData.department}</p>
+            <p><strong>Name:</strong> {submittedData.name}</p>
+            <p><strong>Email:</strong> {submittedData.email}</p>
+            <p><strong>Phone:</strong> {submittedData.phone}</p>
+            <p><strong>Department:</strong> {submittedData.department}</p>
+            <p><strong>Event:</strong> {submittedData.eventName}</p>
+            <p>Payment screenshot uploaded ✅</p>
           </div>
         )}
 
